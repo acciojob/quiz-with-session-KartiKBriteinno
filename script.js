@@ -1,7 +1,7 @@
-//your JS code here.
+const questionsElement = document.getElementById('questions');
+const submitButton = document.getElementById('submit');
+const scoreElement = document.getElementById('score');
 
-// Do not change code below this line
-// This code will just display the questions to the screen
 const questions = [
   {
     question: "What is the capital of France?",
@@ -30,21 +30,26 @@ const questions = [
   },
 ];
 
-// Display the quiz questions and choices
+// Load user's answers from session storage if available
+const userAnswers = JSON.parse(sessionStorage.getItem('progress')) || {};
+
+// Function to render the quiz questions
 function renderQuestions() {
+  questionsElement.innerHTML = ''; // Clear existing content
   for (let i = 0; i < questions.length; i++) {
     const question = questions[i];
-    const questionElement = document.createElement("div");
+    const questionElement = document.createElement('div');
     const questionText = document.createTextNode(question.question);
     questionElement.appendChild(questionText);
+
     for (let j = 0; j < question.choices.length; j++) {
       const choice = question.choices[j];
-      const choiceElement = document.createElement("input");
-      choiceElement.setAttribute("type", "radio");
-      choiceElement.setAttribute("name", `question-${i}`);
-      choiceElement.setAttribute("value", choice);
+      const choiceElement = document.createElement('input');
+      choiceElement.setAttribute('type', 'radio');
+      choiceElement.setAttribute('name', `question-${i}`);
+      choiceElement.setAttribute('value', choice);
       if (userAnswers[i] === choice) {
-        choiceElement.setAttribute("checked", true);
+        choiceElement.setAttribute('checked', true);
       }
       const choiceText = document.createTextNode(choice);
       questionElement.appendChild(choiceElement);
@@ -53,4 +58,34 @@ function renderQuestions() {
     questionsElement.appendChild(questionElement);
   }
 }
+
+// Event listener to save user's progress in session storage
+questionsElement.addEventListener('change', (e) => {
+  const name = e.target.name;
+  const value = e.target.value;
+  const questionIndex = parseInt(name.split('-')[1]);
+  userAnswers[questionIndex] = value;
+  sessionStorage.setItem('progress', JSON.stringify(userAnswers));
+});
+
+// Event listener for the submit button
+submitButton.addEventListener('click', () => {
+  let score = 0;
+  for (let i = 0; i < questions.length; i++) {
+    if (userAnswers[i] === questions[i].answer) {
+      score++;
+    }
+  }
+  const scoreMessage = `Your score is ${score} out of 5.`;
+  scoreElement.textContent = scoreMessage;
+  localStorage.setItem('score', score);
+});
+
+// Render the questions on page load
 renderQuestions();
+
+// Display score if quiz is already completed
+const savedScore = localStorage.getItem('score');
+if (savedScore !== null) {
+  scoreElement.textContent = `Your score is ${savedScore} out of 5.`;
+}
